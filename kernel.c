@@ -7,6 +7,9 @@
 #define DIRS_ENTRY_LENGTH 16
 #define FILES_ENTRY_LENGTH 16
 #define SECTORS_ENTRY_LENGTH 16
+#define INSUFFICIENT_ENTRIES -3
+#define ALREADY_EXISTS -2
+#define SUCCESS 0
 #define MAP_SECTOR 0x100
 #define DIRS_SECTOR 0x101
 #define FILES_SECTOR 0x102
@@ -30,7 +33,7 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
-void writeFile(char *buffer, char *filename, int *sectors);
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void executeProgram(char *filename, int segment, int *success);
 
 // int main() {
@@ -223,7 +226,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		}
 		pointerPath++;
 		if(!found){
-			result = NOT_FOUND;
+			*result = NOT_FOUND;
 			return;
 		} else{
 			parent = pointerDirs;
@@ -234,7 +237,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 	j = 0;
 
 	while(!found && pointerNamaFile<MAX_FILES){
-		if(files[j*FILES_ENTRY_LENGTH] == parent){
+		if(files[pointerNamaFile*FILES_ENTRY_LENGTH] == parent){
 			k = 0;
 			l = pointerPath;
 			found = TRUE;
@@ -261,7 +264,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		}
 	}
 	if(!found){
-		result = NOT_FOUND;
+		*result = NOT_FOUND;
 		return;
 	}
 	readSector(sectors,SECTORS_SECTOR);
@@ -281,60 +284,145 @@ void clear(char *buffer, int length) {
    }
 }
 
-void writeFile(char *buffer, char *filename, int *sectors){
-    char map[SECTOR_SIZE];
-    char dir[SECTOR_SIZE];
-    char sectorBuffer[SECTOR_SIZE];
-    int dirIndex;
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
+	int pointerDirs;
+	int pointerPath = 0;
+	int i,j,k,l,found;
+	int pointerNamaFile = 0;
+	int pointerSector=0; 
+	int pointerFileKosong = 0; 
+	char directory[15];
+	char dirs[SECTOR_SIZE];
+	char files[SECTOR_SIZE];
+	char map[SECTOR_SIZE];
+	readSector(dirs,DIRS_SECTOR);
 
-    readSector(map, MAP_SECTOR);
-    readSector(dir, DIR_SECTOR);
+	char parent = parentIndex;
+	int pointerMap = 0;
+	readSector(map,MAP_SECTOR);
+	while(pointerMap<SECTOR_SIZE){
+		if(map[pointerMap] == '\0'){
+			break;
+		} else{
+			pointerMap++;
+		}	
+	}
+	if(pointerMap == SECTOR_SIZE){
+		*sectors = INSUFFICIENT_SECTORS;
+		return;
+	} else{ // cek files
+		readSector(files,FILES_SECTOR);
+		while(pointerFileKosong<MAX_FILES){
+			if(files[(pointerFileKosong*FILES_ENTRY_LENGTH)+1] == '\0'){
+				break;
+			} else{
+				pointerFileKosong++;
+			}
+		}
+		if(pointerFileKosong == MAX_FILES){
+			*sectors = INSUFFICIENT_ENTRIES;
+			return; 
+		}
+	}
 
-    for (dirIndex = 0; dirIndex < MAX_FILES; ++dirIndex) {
-        if (dir[dirIndex * DIR_ENTRY_LENGTH] == '\0') {
-            break;
-        }
-    }
-
-    if (dirIndex < MAX_FILES) {
-    int i, j, sectorCount;
-    for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
-        if (map[i] == EMPTY) {
-            ++sectorCount;
-        }
-    }
-
-    if (sectorCount < *sectors) {
-        *sectors = INSUFFICIENT_SECTORS;
-        return;
-    } else {
-        clear(dir + dirIndex * DIR_ENTRY_LENGTH, DIR_ENTRY_LENGTH);
-        for (i = 0; i < MAX_FILENAME; ++i) {
-            if (filename[i] != '\0') {
-                dir[dirIndex * DIR_ENTRY_LENGTH + i] = filename[i];
-            } else {
-                break;
-            }
-        }
-        for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
-            if (map[i] == EMPTY) {
-                map[i] = USED;
-                dir[dirIndex * DIR_ENTRY_LENGTH + MAX_FILENAME + sectorCount] = i;
-                clear(sectorBuffer, SECTOR_SIZE);
-                for (j = 0; j < SECTOR_SIZE; ++j) {
-                sectorBuffer[j] = buffer[sectorCount * SECTOR_SIZE + j];
-                }
-                writeSector(sectorBuffer, i);
-                ++sectorCoun;
-            }
-        }
-    }
-    } else { 
-    *sectors = INSUFFICIENT_DIR_ENTRIES;
-    return;
-    }
-    writeSector(map, MAP_SECTOR);
-    writeSector(dir, DIR_SECTOR);
+	while(!isFile(path,pointerPath)){
+		init(directory,15);
+		i = 0;
+		while(path[pointerPath] != '/'){
+			directory[i] = path[pointerPath]; // directory nama dir paling kiri
+			i++; 
+			pointerDirs++;
+		}
+		found = FALSE;
+		pointerDirs = 0;
+		while(pointerDirs<MAX_DIRS && !found){
+			if(dirs[pointerDirs * DIRS_ENTRY_LENGTH] == parent){
+				j = 0;
+				found = TRUE;
+				while(j<i && found){
+					if(dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+j+1] != directory[j]){
+						pointerDirs++;
+						found = FALSE;
+					}
+					j++;
+				}
+				if(found){
+					if(i<15){
+						if(dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+j+1] != '\0'){
+							found = FALSE;
+							pointerDirs++;
+						}
+					}
+				}
+			} else{
+				pointerDirs++;
+			}
+		}
+		pointerPath++;
+		if(!found){
+			*sectors = NOT_FOUND;
+			return;
+		} else{
+			parent = pointerDirs;
+		}
+	}
+	while(!found && pointerNamaFile<MAX_FILES){
+		if(files[pointerNamaFile*FILES_ENTRY_LENGTH] == parent){
+			k = 0;
+			l = pointerPath;
+			found = TRUE;
+			while(path[l] != '\0'){
+				if(path[l] != files[(pointerNamaFile*FILES_ENTRY_LENGTH)+1+k]){
+					pointerNamaFile++;
+					found = FALSE;
+					break;
+				} else{
+					l++;
+					k++;
+				}
+			}
+			if(found){
+				if(k<15){
+					if(files[(pointerNamaFile*FILES_ENTRY_LENGTH)+1+k] != '\0'){
+						found = FALSE;
+						pointerNamaFile++;
+					}
+				}
+			}
+		} else{
+			pointerNamaFile++;
+		}
+	}
+	if(found){
+		*sectors = ALREADY_EXISTS;
+		return;
+	} else{
+		j = 1;
+		files[pointerFileKosong*FILES_ENTRY_LENGTH] = parent;
+		while(path[pointerPath] != '\0'){
+			files[(pointerFileKosong*FILES_ENTRY_LENGTH)+j] = path[pointerPath];
+			j++;
+			pointerPath;  
+		}
+	}
+	map[pointerMap] = 0xFF;
+	while(sectors[pointerSector*SECTOR_SIZE] != '\0'){
+		pointerMap = 0;
+		while(pointerMap<SECTOR_SIZE){
+			if(map[pointerMap] == '\0'){
+				break;
+			} else{
+				pointerMap++;
+			}	
+		}
+		writeSector(buffer+pointerSector * SECTOR_SIZE,pointerMap);
+		sectors[pointerFileKosong * SECTORS_ENTRY_LENGTH+pointerSector] = pointerMap;
+		map[pointerMap] = 0xFF;
+		pointerSector++;
+	}
+	writeSector(map,MAP_SECTOR);
+	writeSector(files,FILES_SECTOR);
+	writeSector(sectors,SECTORS_SECTOR);
 }
 
 void executeProgram(char *filename, int segment, int *success) {
