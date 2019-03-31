@@ -23,38 +23,52 @@
 #define USED 0xFF
 
 void init(char *s,int size){
-	int i;
-	for(i = 0;i<size;i++){
-		s[i] = '\0';
-	}
+    int i;
+    for(i = 0;i<size;i++){
+        s[i] = '\0';
+    }
 }
 
+int mod(int a, int b) {
+   while(a >= b) {
+      a = a - b;
+   }
+   return a;
+}
+
+int div(int a, int b) {
+   int q = 0;
+   while(q*b <= a) {
+      q = q+1;
+   }
+   return q-1;
+}
 int stringCmp(char *a, char *b, int len) {
-	int i = 0;
-	while (i < len) {
-		if (a[i] != b[i]) {
-			return 0;
-		} else if ((a[i] == '\n') || (b[i] == '\n')) {
-			return 0;
-		}
-		i++;
-	}
-	return 1;
+    int i = 0;
+    while (i < len) {
+        if (a[i] != b[i]) {
+            return 0;
+        } else if ((a[i] == '\n') || (b[i] == '\n')) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
 }
 
-main() {
-	int i;
+int main() {
+    int i;
     char curdir;
     char argc;
     char argv[4][16];
     char currentDir;
-	char pathDir;
-	char input[1000];
-	char dirs[SECTOR_SIZE];
-	int complete;
-	int idx;
-	int temp[4];
-	interrupt(0x21, 0x21, &curdir, 0, 0);
+    char pathDir;
+    char input[1000];
+    char dirs[SECTOR_SIZE];
+    int complete;
+    int idx;
+    int temp[4];
+    interrupt(0x21, 0x21, &curdir, 0, 0);
     interrupt(0x21, 0x22, &argc, 0, 0);
     for (i = 0; i < argc; ++i) {
         interrupt(0x21, 0x23, i, argv[i], 0);
@@ -66,30 +80,30 @@ main() {
         interrupt(0x21, 0x01, input, 0, 0);
         interrupt(0x21, 0x00, "\r\n", 0, 0);
 
-		if (stringCmp(input, "cd", 2)) {
-			pathDir = currentDir;
-			idx = 2;
-			while (input[idx] != '\n') {
-				if (input[idx + 1] == 0) {
-					interrupt(0x21, 0x20, 0xFF, 0, 0);
-				} else if (input[idx] == ' ') {
-					interrupt(0x21, 0x30, input+idx, temp, &pathDir);
-					if (temp[2] == NOT_FOUND) {
-						interrupt(0x21, 0x00, "Direktori Tidak Ditemukan!\r\n", 0, 0);
-					} else {
-						interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
-						interrupt(0x21, pathDir<<8 | 0x31, dirs, input+idx, temp);
-						if (temp[2] == NOT_FOUND) {
-							interrupt(0x21, 0x00, "Direktori Tidak Ditemukan!\r\n", 0, 0);
-						} else {
-							currentDir = (char) temp[2];
-							interrupt(0x21, 0x20, currentDir, 0, 0);
-						}
-					}
-				}
-				idx++;		
-			}
-		}else if(stringCmp(input, "ls",2)){
+        if (stringCmp(input, "cd", 2)) {
+            pathDir = currentDir;
+            idx = 2;
+            while (input[idx] != '\n') {
+                if (input[idx + 1] == 0) {
+                    interrupt(0x21, 0x20, 0xFF, 0, 0);
+                } else if (input[idx] == ' ') {
+                    interrupt(0x21, 0x30, input+idx, temp, &pathDir);
+                    if (temp[2] == NOT_FOUND) {
+                        interrupt(0x21, 0x00, "Direktori Tidak Ditemukan!\r\n", 0, 0);
+                    } else {
+                        interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
+                        interrupt(0x21, pathDir<<8 | 0x31, dirs, input+idx, temp);
+                        if (temp[2] == NOT_FOUND) {
+                            interrupt(0x21, 0x00, "Direktori Tidak Ditemukan!\r\n", 0, 0);
+                        } else {
+                            currentDir = (char) temp[2];
+                            interrupt(0x21, 0x20, currentDir, 0, 0);
+                        }
+                    }
+                }
+                idx++;      
+            }
+        }else if(stringCmp(input, "ls",2)){
             char dirs[SECTOR_SIZE];
             char files[SECTOR_SIZE];
             char nama[19];
@@ -108,7 +122,8 @@ main() {
                         nama[15] = 'd';
                         nama[16] = 'i';
                         nama[17] = 'r';
-                        nama[18] = '\r\n';
+                        nama[18] = '\r';
+                        nama[19] = '\n';
                     }
                     interrupt(0x21, 0x00, nama, 0, 0);
                 }
@@ -118,7 +133,8 @@ main() {
                     for (j = 1;j<MAX_DIRS;j++){
                         namaFile[j-1] = files[(i*SECTORS_ENTRY_LENGTH)+j];
                     }
-                    namaFile[15] = '\r\n';
+                    namaFile[15] = '\r';
+                    namaFile[16] = '\n';
                     interrupt(0x21, 0x00, namaFile, 0, 0);
                 }
             }
@@ -160,13 +176,14 @@ main() {
             int  result;
             char type = 0;
             int length = SECTOR_SIZE * MAP_SECTOR;
+            int i;
 
             //get currentDir
             interrupt(0x21, 0x21, &currentDir, 0, 0);
             //get argc
             interrupt(0x21, 0x22, &argc, 0, 0);
             //get args
-            for (int i = 0; i < argc; i++) {
+            for (i = 0; i < argc; i++) {
                 interrupt(0x21, 0x23, i, argv[i], 0);
             }
 
@@ -195,7 +212,7 @@ main() {
                 }
             }
             interrupt(0x21, (0XFF << 8) | 0x06, "shell", 0x2000, result);
-        }
-	}
+        } else if(stringCmp(input,""))
+    }
     return 0;
 }

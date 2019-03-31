@@ -50,15 +50,16 @@ void deleteDirectory(char *path, int *success, char parentIndex);
 
 int main() {
 //     char xxx[1000];
-	int result = 0;
-
+	int success;
 	makeInterrupt21();
+	handleInterrupt21(0x00,"kernel.c",0,0);
 //     //handleInterrupt21(0x6,"keyproc",0x2000,s);
 //     handleInterrupt21(0x4,xxx,"key.txt",s);
 //     handleInterrupt21(0x0,xxx,0,0);
 //     //Kode akses : CY7aJVLa
 //     while (1);
-	interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0, &result);
+	interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+	while(1);
 }
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
@@ -100,7 +101,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       deleteDirectory(BX, CX, AH);
       break;
     case 0x20:
-      putArgs(BX, CX);
+      putArgs(BX, CX,DX);
       break;
     case 0x21:
       getCurdir(BX);
