@@ -1,6 +1,6 @@
 #define MAX_BYTE 256
 #define SECTOR_SIZE 512
-#define MAX_FILES 16
+#define MAX_FILES 32
 #define MAX_FILENAME 12
 #define MAX_DIRS 32
 #define MAX_SECTORS 20
@@ -33,9 +33,12 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
-void deleteFile(char *path, int *result, char parentIndex);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
-void executeProgram(char *filename, int segment, int *success);
+void deleteFile(char *path, int *result, char parentIndex);
+void executeProgram(char *path, int segment, int *result, char parentIndex);
+void terminateProgram (int *result);
+void makeDirectory(char *path, int *result, char parentIndex);
+void deleteDirectory(char *path, int *success, char parentIndex);
 
 // int main() {
 //     char xxx[1000];
@@ -162,6 +165,7 @@ void readSector(char *buffer, int sector){
 void writeSector(char *buffer, int sector){
     interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
 }
+
 int isFile(char *path,int pointer){
 	while(path[pointer]){
 		if(path[pointer] == '/'){
@@ -179,6 +183,7 @@ void init(char *s,int size){
 		s[i] = '\0';
 	}
 }
+
 void readFile(char *buffer, char *path, int *result, char parentIndex){
 	int pointerDirs;
 	int pointerPath = 0;
@@ -191,6 +196,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 	char sectors[SECTORS_SECTOR];
 	readSector(dirs,DIRS_SECTOR);
 	char parent = parentIndex;
+
 	while(!isFile(path,pointerPath)){
 		init(directory,15);
 		i = 0;
@@ -531,14 +537,282 @@ void deleteFile(char *path, int *result, char parentIndex){
 
 }
 
-void executeProgram(char *filename, int segment, int *success) {
+void executeProgram(char *path, int segment, int *result, char parentIndex){
 	char buffer[MAX_SECTORS * SECTOR_SIZE];
 	int i;
-	readFile(buffer, filename,success);
-	if (*success == TRUE){
+	readFile(buffer, path,result,parentIndex);
+	if (*result == TRUE){
 		for (i = 0; i<MAX_SECTORS * SECTOR_SIZE ; i++){
 			putInMemory(segment, i, buffer[i]);
 		}
 		launchProgram(segment);
 	}
+}
+
+void terminateProgram (int *result) {
+	char shell[6];
+	shell[0] = 's';
+	shell[1] = 'h';
+	shell[2] = 'e';
+	shell[3] = 'l';
+	shell[4] = 'l';
+	shell[5] = '\0';
+	executeProgram(shell, 0x2000, result, 0xFF);
+}
+
+void makeDirectory(char *path, int *result, char parentIndex){
+	int pointerDirs = 0;
+	int pointerDirectory = 0;
+	int pointerPath = 0;
+	int pointerFiles;
+	int freee;
+	int found;
+	int sameName;
+	int i;
+	int freeDirSection;
+	char dirs[SECTOR_SIZE];
+	char files[SECTOR_SIZE];
+	char directory[15];
+	char parent = parentIndex;
+	
+
+	readSector(dirs,DIRS_SECTOR);
+	freee = FALSE;
+	while (pointerDirs<MAX_DIRS && !freee){
+		if (dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+1]=='\0'){
+			freee = TRUE;
+			freeDirSection = pointerDirs;
+		}
+		pointerDirs++;
+	}
+	if (freee){
+		while(!isFile(path,pointerPath)){
+			pointerDirs = 0;
+			found = FALSE;
+			pointerDirectory = 0;
+			init(directory,15);
+			while(path[pointerPath]!='/'){
+				directory[pointerDirectory] = path[pointerPath];
+				pointerPath++;
+				pointerDirectory++;
+			}
+			while(pointerDirs<MAX_DIRS && !found){
+				if (parent==dirs[pointerDirs*DIRS_ENTRY_LENGTH]){
+					sameName = TRUE;
+					i = 1;
+					pointerDirectory = 0;
+					while (directory[pointerDirectory]!='\0' && pointerDirectory<DIRS_ENTRY_LENGTH-1 && sameName){
+						if (directory[pointerDirectory]!=dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+i]){
+							sameName = FALSE;
+						}
+						i++;
+						pointerDirectory++;
+					}
+				}
+				if (sameName){
+					found = TRUE;
+				}else{
+					pointerDirs++;
+				}
+			}
+			if (found){
+				parent = dirs[pointerDirs*DIRS_ENTRY_LENGTH];
+			}else{
+				*result = NOT_FOUND;
+				return;
+			}
+		}
+		readSector(files,FILES_SECTOR);
+		found = FALSE;
+		pointerFiles = 0;
+		pointerDirectory = 0;
+		init(directory,15);
+		while (path[pointerPath]!='\0'){
+			directory[pointerDirectory] = path[pointerPath];
+			pointerPath++;
+			pointerDirectory++;
+		}
+		while(pointerFiles<MAX_FILES && !found){
+			if (files[pointerFiles*FILES_ENTRY_LENGTH] == parent){
+				pointerDirectory = 0;
+				sameName = TRUE;
+				i = 1;
+				while(directory[pointerDirectory]!='\0' && sameName){
+					if (directory[pointerDirectory] != files[(pointerFiles*FILES_ENTRY_LENGTH)+i]){
+						sameName = FALSE;
+					}
+					pointerDirectory++;
+					i++;
+				}
+				if(sameName){
+					*result = ALREADY_EXISTS;
+					return;
+				}
+				pointerFiles++;
+			}
+		}
+		dirs[freeDirSection*DIRS_ENTRY_LENGTH] = parent;
+		i = 1;
+		while (i<16){
+			if (directory[i-1] == '\0'){
+				break;
+			}else
+			{
+				dirs[(freeDirSection*DIRS_ENTRY_LENGTH)+i] = directory[i-1];
+			}
+			i++;
+		}
+		*result = SUCCESS;
+		writeSector(dirs,DIRS_SECTOR);
+		writeSector(files,FILES_SECTOR);
+	}else{
+		*result = INSUFFICIENT_ENTRIES;
+		return;
+	}
+}
+
+void deleteDirectory(char *path, int *success, char parentIndex){
+	int pointerDirs = 0;
+	int pointerDirectory = 0;
+	int pointerPath = 0;
+	int pointerFiles;
+	int found;
+	int sameName;
+	int i;
+	int freeDirSection;
+	char dirs[SECTOR_SIZE];
+	char files[SECTOR_SIZE];
+	char directory[15];
+	char parent = parentIndex;
+	
+	readSector(dirs,DIRS_SECTOR);
+	while(!isFile(path,pointerPath)){
+		pointerDirs = 0;
+		found = FALSE;
+		pointerDirectory = 0;
+		init(directory,15);
+		while(path[pointerPath]!='/'){
+			directory[pointerDirectory] = path[pointerPath];
+			pointerPath++;
+			pointerDirectory++;
+		}
+		while(pointerDirs<MAX_DIRS && !found){
+			if (parent==dirs[pointerDirs*DIRS_ENTRY_LENGTH]){
+				sameName = TRUE;
+				i = 1;
+				pointerDirectory = 0;
+				while (directory[pointerDirectory]!='\0' && pointerDirectory<DIRS_ENTRY_LENGTH-1 && sameName){
+					if (directory[pointerDirectory]!=dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+i]){
+						sameName = FALSE;
+					}
+					i++;
+					pointerDirectory++;
+				}
+			}
+			if (sameName){
+				found = TRUE;
+			}else{
+				pointerDirs++;
+			}
+		}
+		if (found){
+			parent = dirs[pointerDirs*DIRS_ENTRY_LENGTH];
+		}else{
+			*success = NOT_FOUND;
+			return;
+		}
+	}
+	pointerDirs = 0;
+	found = FALSE;
+	pointerDirectory = 0;
+	init(directory,15);
+	while(path[pointerPath]!='\0'){
+		directory[pointerDirectory] = path[pointerPath];
+		pointerPath++;
+		pointerDirectory++;
+	}
+	while(pointerDirs<MAX_DIRS && !found){
+		if (parent==dirs[pointerDirs*DIRS_ENTRY_LENGTH]){
+			sameName = TRUE;
+			i = 1;
+			pointerDirectory = 0;
+			while (directory[pointerDirectory]!='\0' && pointerDirectory<DIRS_ENTRY_LENGTH-1 && sameName){
+				if (directory[pointerDirectory]!=dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+i]){
+					sameName = FALSE;
+				}
+				i++;
+				pointerDirectory++;
+			}
+		}
+		if (sameName){
+			found = TRUE;
+		}else{
+			pointerDirs++;
+		}
+	}
+	if (found){
+		parent = dirs[pointerDirs*DIRS_ENTRY_LENGTH];
+	}else{
+		*success = NOT_FOUND;
+		return;
+	}
+
+	int x;
+	readSector(files,FILES_SECTOR);
+	for (x = 0;x<MAX_FILES;x++){
+		if (files[x*FILES_ENTRY_LENGTH] == pointerDirs){
+			deleteFileIndex(x);
+		}
+	}
+	for (i = 0;i<MAX_DIRS;i++){
+		if (dirs[i*SECTORS_ENTRY_LENGTH] == pointerDirs){
+			deleteDirectoryIndex(i);
+		}
+	}
+	*success = SUCCESS;
+	writeSector(dirs,DIRS_SECTOR);
+	writeSector(files,FILES_SECTOR);
+}
+
+void deleteFileIndex(int idx){
+	char files[SECTOR_SIZE];
+	char map[SECTOR_SIZE];
+	char sectors[SECTOR_SIZE];
+	int pointerSector;
+
+	readSector(map,MAP_SECTOR);
+	readSector(sectors,SECTORS_SECTOR);
+	readSector(files,FILES_SECTOR);
+	pointerSector = 0;
+	while(sectors[idx*SECTORS_ENTRY_LENGTH+pointerSector] != '\0'){
+		map[sectors[pointerSector*SECTORS_ENTRY_LENGTH+pointerSector]] =  0x00;
+		pointerSector++;
+	}
+	files[idx*FILES_ENTRY_LENGTH+1] = '\0'; 
+	writeSector(map, MAP_SECTOR);
+	writeSector(files, FILES_SECTOR);
+	writeSector(sectors, SECTORS_SECTOR);
+}
+
+void deleteDirectoryIndex(int idx){
+	char dirs[SECTOR_SIZE];
+	char files[SECTOR_SIZE];
+	int i;
+
+	readSector(dirs,DIRS_SECTOR);
+	readSector(files,FILES_SECTOR);
+
+	for (i = 0;i<MAX_DIRS;i++){
+		if (dirs[i*SECTORS_ENTRY_LENGTH] == idx){
+			deleteDirectoryIndex(i);
+		}
+	}
+	int x;
+	for (x = 0;x<MAX_FILES;x++){
+		if (files[x*FILES_ENTRY_LENGTH] == idx){
+			deleteFileIndex(x);
+		}
+	}
+	writeSector(dirs,DIRS_SECTOR);
+	writeSector(files,FILES_SECTOR);
 }
