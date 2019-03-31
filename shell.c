@@ -60,7 +60,7 @@ int main() {
     int i;
     char curdir;
     char argc;
-    char argv[4][16];
+    char** argv;
     char currentDir;
     char pathDir;
     char input[1000];
@@ -68,6 +68,14 @@ int main() {
     int complete;
     int idx;
     int temp[4];
+    char namaDir[100];
+    char files[SECTOR_SIZE];
+    int j,result;
+    char nama[19];
+    char namaFile[16];
+    char inputIsi[128];
+    char type = 0;
+    int length = SECTOR_SIZE * MAP_SECTOR;
     interrupt(0x21, 0x21, &curdir, 0, 0);
     interrupt(0x21, 0x22, &argc, 0, 0);
     for (i = 0; i < argc; ++i) {
@@ -104,11 +112,7 @@ int main() {
                 idx++;      
             }
         }else if(stringCmp(input, "ls",2)){
-            char dirs[SECTOR_SIZE];
-            char files[SECTOR_SIZE];
-            char nama[19];
-            char namaFile[16];
-            int i,j;
+
 
             interrupt(0x13, 0x201, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
             interrupt(0x13, 0x201, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
@@ -141,12 +145,7 @@ int main() {
             interrupt(0x13, 0x301, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
             interrupt(0x13, 0x301, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
         }else if(stringCmp(input,"mkdir",5)){
-            char namaDir[100];
-            char dirs[SECTOR_SIZE];
-            char files[SECTOR_SIZE];
-            char nama[18];
-            char namaFile[15];
-            int i,j,result;
+
 
             interrupt(0x13, 0x201, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
             interrupt(0x13, 0x201, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
@@ -168,15 +167,7 @@ int main() {
             interrupt(0x13, 0x301, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
             interrupt(0x13, 0x301, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
         } else if (stringCmp(input, "cat", 3)) {
-            char currentDir;
-            char argc;
-            char argv[20];
-            char temp[SECTOR_SIZE * MAP_SECTOR];
-            char inputIsi[128];
-            int  result;
-            char type = 0;
-            int length = SECTOR_SIZE * MAP_SECTOR;
-            int i;
+
 
             //get currentDir
             interrupt(0x21, 0x21, &currentDir, 0, 0);
@@ -212,7 +203,14 @@ int main() {
                 }
             }
             interrupt(0x21, (0XFF << 8) | 0x06, "shell", 0x2000, result);
-        } else if(stringCmp(input,""))
+        } else if(stringCmp(input,"echo",4)){
+            
+            interrupt(0x21, 0x21, &currentDir, 0, 0);
+            interrupt(0x21, 0x23, 0, argv[0], 0);
+            interrupt(0x21, 0x0, argv[0], 0, 0);
+            interrupt(0x21, 0x0, "\r\n", 0, 0);
+            interrupt(0x21, 0x07, &result, 0, 0);
+        }
     }
     return 0;
 }
