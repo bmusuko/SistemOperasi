@@ -32,37 +32,37 @@
 00000000000i[     ]   SB16 support: yes
 00000000000i[     ]   USB support: yes
 00000000000i[     ]   VGA extension support: vbe cirrus
-00000000000i[MEM0 ] allocated memory at 0x7fce928b7010. after alignment, vector=0x7fce928b8000
+00000000000i[MEM0 ] allocated memory at 0x7ffba5bb6010. after alignment, vector=0x7ffba5bb7000
 00000000000i[MEM0 ] 32.00MB
 00000000000i[MEM0 ] mem block size = 0x00100000, blocks=32
 00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
-00000000000i[     ] lt_dlhandle is 0x560ba4aad7b0
+00000000000i[     ] lt_dlhandle is 0x5569a8f6a540
 00000000000i[PLGIN] loaded plugin libbx_hdimage.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c72380
+00000000000i[     ] lt_dlhandle is 0x5569a912f110
 00000000000i[PLGIN] loaded plugin libbx_pci.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c72f10
+00000000000i[     ] lt_dlhandle is 0x5569a912fca0
 00000000000i[PLGIN] loaded plugin libbx_pci2isa.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c73920
+00000000000i[     ] lt_dlhandle is 0x5569a91306b0
 00000000000i[PLGIN] loaded plugin libbx_acpi.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c74330
+00000000000i[     ] lt_dlhandle is 0x5569a91310c0
 00000000000i[PLGIN] loaded plugin libbx_cmos.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c74c70
+00000000000i[     ] lt_dlhandle is 0x5569a9131a00
 00000000000i[PLGIN] loaded plugin libbx_dma.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c75710
+00000000000i[     ] lt_dlhandle is 0x5569a91324a0
 00000000000i[PLGIN] loaded plugin libbx_pic.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c75fc0
+00000000000i[     ] lt_dlhandle is 0x5569a9132d50
 00000000000i[PLGIN] loaded plugin libbx_pit.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c76a00
+00000000000i[     ] lt_dlhandle is 0x5569a9133790
 00000000000i[PLGIN] loaded plugin libbx_floppy.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c77600
+00000000000i[     ] lt_dlhandle is 0x5569a9134390
 00000000000i[PLGIN] loaded plugin libbx_vga.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c77e70
+00000000000i[     ] lt_dlhandle is 0x5569a9134c00
 00000000000i[PLGIN] loaded plugin libbx_ioapic.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c786c0
+00000000000i[     ] lt_dlhandle is 0x5569a9135450
 00000000000i[PLGIN] loaded plugin libbx_keyboard.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c79050
+00000000000i[     ] lt_dlhandle is 0x5569a9135de0
 00000000000i[PLGIN] loaded plugin libbx_harddrv.so
-00000000000i[     ] lt_dlhandle is 0x560ba4c8b180
+00000000000i[     ] lt_dlhandle is 0x5569a9147f10
 00000000000i[PLGIN] loaded plugin libbx_pci_ide.so
 00000000000i[PLGIN] init_dev of 'pci' plugin device by virtual method
 00000000000i[PCI  ] 440FX Host bridge present at device 0, function 0
@@ -70,7 +70,7 @@
 00000000000i[PCI  ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS ] Using local time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Mon Mar 25 20:32:21 2019 (time0=1553520741)
+00000000000i[CMOS ] Setting initial clock to: Sun Mar 31 21:53:52 2019 (time0=1554044032)
 00000000000i[PLGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[PLGIN] init_dev of 'pic' plugin device by virtual method
@@ -214,30 +214,105 @@
 00001597636i[VBIOS] VBE Bios $Id: vbe.c,v 1.64 2011/07/19 18:25:05 vruppert Exp $
 00003333332i[XGUI ] charmap update. Font Height is 16
 00032315164i[BIOS ] Booting from 0000:7c00
-00228967502i[     ] Ctrl-C detected in signal handler.
-00228967502i[XGUI ] Mouse capture off
-00228967502i[     ] Ctrl-C detected in signal handler.
-00228967502i[     ] Ctrl-C detected in signal handler.
-00296761505i[     ] Ctrl-C detected in signal handler.
-00296761506i[XGUI ] Mouse capture off
-00296761506i[     ] dbg: Quit
-00296761506i[CPU0 ] CPU is in real mode (active)
-00296761506i[CPU0 ] CS.mode = 16 bit
-00296761506i[CPU0 ] SS.mode = 16 bit
-00296761506i[CPU0 ] EFER   = 0x00000000
-00296761506i[CPU0 ] | EAX=0000fc00  EBX=0000fc09  ECX=00090000  EDX=00000000
-00296761506i[CPU0 ] | ESP=0000fc00  EBP=0000ffee  ESI=000e0084  EDI=0000ffac
-00296761506i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf AF PF cf
-00296761506i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-00296761506i[CPU0 ] |  CS:1000( 0004| 0|  0) 00010000 0000ffff 0 0
-00296761506i[CPU0 ] |  DS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00296761506i[CPU0 ] |  SS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00296761506i[CPU0 ] |  ES:1000( 0005| 0|  0) 00010000 0000ffff 0 0
-00296761506i[CPU0 ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-00296761506i[CPU0 ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-00296761506i[CPU0 ] | EIP=00000037 (00000037)
-00296761506i[CPU0 ] | CR0=0x60000010 CR2=0x00000000
-00296761506i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
-00296761506i[CMOS ] Last time is 1553520770 (Mon Mar 25 20:32:50 2019)
-00296761506i[XGUI ] Exit
-00296761506i[CTRL ] quit_sim called with exit code 0
+00033456800i[CPU0 ] LOCK prefix unallowed (op1=0x53, modrm=0x00)
+00033456804i[CPU0 ] LOCK prefix unallowed (op1=0x53, modrm=0x00)
+00052290000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a6)
+00052490000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00052650000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00052680000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00053040000i[KBD  ] internal keyboard buffer full, ignoring scancode.(27)
+00053230000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00053520000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00053680000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a7)
+00053800000i[KBD  ] internal keyboard buffer full, ignoring scancode.(17)
+00053830000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00053870000i[KBD  ] internal keyboard buffer full, ignoring scancode.(23)
+00053910000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00054100000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00054370000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00054720000i[KBD  ] internal keyboard buffer full, ignoring scancode.(27)
+00054750000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00054830000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a3)
+00055090000i[KBD  ] internal keyboard buffer full, ignoring scancode.(17)
+00055120000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00055160000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00055390000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a7)
+00055500000i[KBD  ] internal keyboard buffer full, ignoring scancode.(23)
+00055730000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00055850000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00056080000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00056460000i[KBD  ] internal keyboard buffer full, ignoring scancode.(27)
+00056490000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00056530000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a3)
+00056870000i[KBD  ] internal keyboard buffer full, ignoring scancode.(10)
+00056900000i[KBD  ] internal keyboard buffer full, ignoring scancode.(17)
+00056980000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00057210000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a7)
+00057290000i[KBD  ] internal keyboard buffer full, ignoring scancode.(23)
+00057450000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00057670000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00057790000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00057830000i[KBD  ] internal keyboard buffer full, ignoring scancode.(90)
+00058310000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00058390000i[KBD  ] internal keyboard buffer full, ignoring scancode.(27)
+00058430000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a3)
+00058470000i[KBD  ] internal keyboard buffer full, ignoring scancode.(10)
+00058540000i[KBD  ] internal keyboard buffer full, ignoring scancode.(18)
+00058860000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00058890000i[KBD  ] internal keyboard buffer full, ignoring scancode.(17)
+00059290000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00059320000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a7)
+00059360000i[KBD  ] internal keyboard buffer full, ignoring scancode.(23)
+00059400000i[KBD  ] internal keyboard buffer full, ignoring scancode.(98)
+00059560000i[KBD  ] internal keyboard buffer full, ignoring scancode.(90)
+00059600000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00059790000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00060250000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00060370000i[KBD  ] internal keyboard buffer full, ignoring scancode.(27)
+00060440000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a3)
+00060480000i[KBD  ] internal keyboard buffer full, ignoring scancode.(10)
+00060720000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00060790000i[KBD  ] internal keyboard buffer full, ignoring scancode.(17)
+00061150000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00061190000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a7)
+00061510000i[KBD  ] internal keyboard buffer full, ignoring scancode.(90)
+00061540000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00061620000i[KBD  ] internal keyboard buffer full, ignoring scancode.(97)
+00062250000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00074280000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00074910000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00075270000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00075740000i[KBD  ] internal keyboard buffer full, ignoring scancode.(11)
+00075780000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00076250000i[KBD  ] internal keyboard buffer full, ignoring scancode.(20)
+00076710000i[KBD  ] internal keyboard buffer full, ignoring scancode.(91)
+00077020000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a0)
+00079280000i[KBD  ] internal keyboard buffer full, ignoring scancode.(25)
+00079830000i[KBD  ] internal keyboard buffer full, ignoring scancode.(a5)
+00079910000i[KBD  ] internal keyboard buffer full, ignoring scancode.(1d)
+00080990000i[KBD  ] internal keyboard buffer full, ignoring scancode.(2e)
+00081500000i[KBD  ] internal keyboard buffer full, ignoring scancode.(9d)
+00081660000i[KBD  ] internal keyboard buffer full, ignoring scancode.(ae)
+00090899879i[     ] Ctrl-C detected in signal handler.
+00090899880i[XGUI ] Mouse capture off
+00090899880i[     ] dbg: Quit
+00090899880i[CPU0 ] CPU is in real mode (active)
+00090899880i[CPU0 ] CS.mode = 16 bit
+00090899880i[CPU0 ] SS.mode = 16 bit
+00090899880i[CPU0 ] EFER   = 0x00000000
+00090899880i[CPU0 ] | EAX=0000001f  EBX=00000000  ECX=00090002  EDX=00000000
+00090899880i[CPU0 ] | ESP=0000ffdc  EBP=0000ffee  ESI=000e0001  EDI=0000ffac
+00090899880i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
+00090899880i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
+00090899880i[CPU0 ] |  CS:0000( 0004| 0|  0) 00000000 0000ffff 0 0
+00090899880i[CPU0 ] |  DS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00090899880i[CPU0 ] |  SS:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00090899880i[CPU0 ] |  ES:1000( 0005| 0|  0) 00010000 0000ffff 0 0
+00090899880i[CPU0 ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00090899880i[CPU0 ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00090899880i[CPU0 ] | EIP=00000003 (00000003)
+00090899880i[CPU0 ] | CR0=0x60000010 CR2=0x00000000
+00090899880i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
+00090899880i[CMOS ] Last time is 1554044041 (Sun Mar 31 21:54:01 2019)
+00090899880i[XGUI ] Exit
+00090899880i[CTRL ] quit_sim called with exit code 0
