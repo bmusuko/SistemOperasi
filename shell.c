@@ -22,6 +22,8 @@
 #define EMPTY 0x00
 #define USED 0xFF
 
+#include "kernel.c"
+
 
 int stringCmp(char *a, char *b, int len) {
 	int i = 0;
@@ -38,18 +40,20 @@ int stringCmp(char *a, char *b, int len) {
 
 void main() {
 	char currentDir;
-	char pathDir
+	char pathDir;
 	char input[1000];
 	char dirs[SECTOR_SIZE];
 	int complete;
 	int idx;
 	int temp[4];
-	interrupt(0x21, 0x21, &currentDir, 0, 0);
-	interrupt(0x21, 0x00, "$", 0, 0);
-	interrupt(0x21, 0x01, input, 0, 0);
-	interrupt(0x21, 0x00, "\r\n", 0, 0);
+	
+    while(1) {
 
-	while(1) {
+        interrupt(0x21, 0x21, &currentDir, 0, 0);
+        interrupt(0x21, 0x00, "$", 0, 0);
+        interrupt(0x21, 0x01, input, 0, 0);
+        interrupt(0x21, 0x00, "\r\n", 0, 0);
+
 		if (stringCmp(input, "cd", 2)) {
 			pathDir = currentDir;
 			idx = 2;
@@ -73,14 +77,37 @@ void main() {
 				}
 				idx++;		
 			}
-		}
+		}else if(stringCmp(input, "ls",2)){
+            char dirs[SECTOR_SIZE];
+            char files[SECTOR_SIZE];
+            char nama[18];
+            char namaFile[15];
+            int i,j;
 
-		//
+            readSector(dirs,DIRS_SECTOR);
+            readSector(files,FILES_SECTOR);
 
-
-
+            init(nama,18);
+            init(namaFile,15);
+            for (i = 0;i<MAX_DIRS;i++){
+                if(dirs[i*SECTORS_ENTRY_LENGTH] == currentDir){
+                    for (j = 1;j<MAX_DIRS;j++){
+                        nama[j-1] = dirs[(i*SECTORS_ENTRY_LENGTH)+j];
+                        nama[15] = 'd';
+                        nama[16] = 'i';
+                        nama[17] = 'r';
+                    }
+                    printString(nama);
+                }
+            }
+            for (i = 0;i<MAX_DIRS;i++){
+                if(files[i*SECTORS_ENTRY_LENGTH] == currentDir){
+                    for (j = 1;j<MAX_DIRS;j++){
+                        namaFile[j-1] = files[(i*SECTORS_ENTRY_LENGTH)+j];
+                    }
+                    printString(namaFile);
+                }
+            }
+        }
 	}
 }
-
-
-
