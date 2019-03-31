@@ -50,7 +50,7 @@ void deleteDirectory(char *path, int *success, char parentIndex);
 
 int main() {
 //     char xxx[1000];
-	int result;
+	int result = 0;
 
 	makeInterrupt21();
 //     //handleInterrupt21(0x6,"keyproc",0x2000,s);
