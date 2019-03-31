@@ -108,6 +108,27 @@ void main() {
                     printString(namaFile);
                 }
             }
+        }else if(stringCmp(input,"mkdir",5)){
+            char namaDir[100];
+            char dirs[SECTOR_SIZE];
+            char files[SECTOR_SIZE];
+            char nama[18];
+            char namaFile[15];
+            int i,j,result;
+
+            readSector(dirs,DIRS_SECTOR);
+            readSector(files,FILES_SECTOR);
+            i = 6;
+            while(input[i]!='\0'){
+                namaDir[i-6] = input[i];
+                i++;
+            }
+            makeDirectory(namaDir,&result,currentDir);
+            if(result == INSUFFICIENT_ENTRIES){
+                printString("Memory Tidak Cukup");
+            }else if(result == ALREADY_EXISTS){
+                printString("Directory Sudah Ada");
+            }
         }
 	}
 }
