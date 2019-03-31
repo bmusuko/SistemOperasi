@@ -1,7 +1,8 @@
 #define MAX_BYTE 256
+#define ARGS_SECTOR 512
 #define SECTOR_SIZE 512
 #define MAX_FILES 32
-#define MAX_FILENAME 12
+#define MAX_FILENAME 16
 #define MAX_DIRS 32
 #define MAX_SECTORS 20
 #define DIRS_ENTRY_LENGTH 16
@@ -24,6 +25,7 @@
 
 
 
+
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
 void readString(char *string);
@@ -33,23 +35,31 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 void clear(char *buffer, int length);
+void getCurdir (char *curdir);
+void getArgc (char *argc);
+void getArgv (char index, char *argv);
+void putArgs (char curdir, char argc, char **argv);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
+void deleteFileIndex(int idx);
+void deleteDirectoryIndex(int idx);
 void deleteFile(char *path, int *result, char parentIndex);
 void executeProgram(char *path, int segment, int *result, char parentIndex);
 void terminateProgram (int *result);
 void makeDirectory(char *path, int *result, char parentIndex);
 void deleteDirectory(char *path, int *success, char parentIndex);
 
-// int main() {
+int main() {
 //     char xxx[1000];
-//     int s;
-//     makeInterrupt21();
+	int result;
+
+	makeInterrupt21();
 //     //handleInterrupt21(0x6,"keyproc",0x2000,s);
 //     handleInterrupt21(0x4,xxx,"key.txt",s);
 //     handleInterrupt21(0x0,xxx,0,0);
 //     //Kode akses : CY7aJVLa
 //     while (1);
-// }
+	interrupt(0x21, 0xFF << 8 | 0x06, "shell", 0, &result);
+}
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
   char AL, AH;
@@ -194,8 +204,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 	char dirs[SECTOR_SIZE];
 	char files[SECTOR_SIZE];
 	char sectors[SECTORS_SECTOR];
-	readSector(dirs,DIRS_SECTOR);
 	char parent = parentIndex;
+	readSector(dirs,DIRS_SECTOR);
 
 	while(!isFile(path,pointerPath)){
 		init(directory,15);
@@ -302,10 +312,11 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 	char dirs[SECTOR_SIZE];
 	char files[SECTOR_SIZE];
 	char map[SECTOR_SIZE];
-	readSector(dirs,DIRS_SECTOR);
 
 	char parent = parentIndex;
 	int pointerMap = 0;
+	readSector(dirs,DIRS_SECTOR);
+
 	readSector(map,MAP_SECTOR);
 	while(pointerMap<SECTOR_SIZE){
 		if(map[pointerMap] == '\0'){
@@ -444,10 +455,10 @@ void deleteFile(char *path, int *result, char parentIndex){
 	char files[SECTOR_SIZE];
 	char map[SECTOR_SIZE];
 	char sectors[SECTOR_SIZE];
-	readSector(dirs,DIRS_SECTOR);
-
 	char parent = parentIndex;
 	int pointerMap = 0;
+
+	readSector(dirs,DIRS_SECTOR);
 
 	while(!isFile(path,pointerPath)){
 		init(directory,15);
@@ -670,6 +681,25 @@ void makeDirectory(char *path, int *result, char parentIndex){
 		return;
 	}
 }
+void deleteFileIndex(int idx){
+	char files[SECTOR_SIZE];
+	char map[SECTOR_SIZE];
+	char sectors[SECTOR_SIZE];
+	int pointerSector;
+
+	readSector(map,MAP_SECTOR);
+	readSector(sectors,SECTORS_SECTOR);
+	readSector(files,FILES_SECTOR);
+	pointerSector = 0;
+	while(sectors[idx*SECTORS_ENTRY_LENGTH+pointerSector] != '\0'){
+		map[sectors[pointerSector*SECTORS_ENTRY_LENGTH+pointerSector]] =  0x00;
+		pointerSector++;
+	}
+	files[idx*FILES_ENTRY_LENGTH+1] = '\0'; 
+	writeSector(map, MAP_SECTOR);
+	writeSector(files, FILES_SECTOR);
+	writeSector(sectors, SECTORS_SECTOR);
+}
 
 void deleteDirectory(char *path, int *success, char parentIndex){
 	int pointerDirs = 0;
@@ -679,6 +709,7 @@ void deleteDirectory(char *path, int *success, char parentIndex){
 	int found;
 	int sameName;
 	int i;
+	int x;
 	int freeDirSection;
 	char dirs[SECTOR_SIZE];
 	char files[SECTOR_SIZE];
@@ -757,7 +788,7 @@ void deleteDirectory(char *path, int *success, char parentIndex){
 		return;
 	}
 
-	int x;
+
 	readSector(files,FILES_SECTOR);
 	for (x = 0;x<MAX_FILES;x++){
 		if (files[x*FILES_ENTRY_LENGTH] == pointerDirs){
@@ -774,31 +805,13 @@ void deleteDirectory(char *path, int *success, char parentIndex){
 	writeSector(files,FILES_SECTOR);
 }
 
-void deleteFileIndex(int idx){
-	char files[SECTOR_SIZE];
-	char map[SECTOR_SIZE];
-	char sectors[SECTOR_SIZE];
-	int pointerSector;
 
-	readSector(map,MAP_SECTOR);
-	readSector(sectors,SECTORS_SECTOR);
-	readSector(files,FILES_SECTOR);
-	pointerSector = 0;
-	while(sectors[idx*SECTORS_ENTRY_LENGTH+pointerSector] != '\0'){
-		map[sectors[pointerSector*SECTORS_ENTRY_LENGTH+pointerSector]] =  0x00;
-		pointerSector++;
-	}
-	files[idx*FILES_ENTRY_LENGTH+1] = '\0'; 
-	writeSector(map, MAP_SECTOR);
-	writeSector(files, FILES_SECTOR);
-	writeSector(sectors, SECTORS_SECTOR);
-}
 
 void deleteDirectoryIndex(int idx){
 	char dirs[SECTOR_SIZE];
 	char files[SECTOR_SIZE];
 	int i;
-
+	int x;
 	readSector(dirs,DIRS_SECTOR);
 	readSector(files,FILES_SECTOR);
 
@@ -807,7 +820,6 @@ void deleteDirectoryIndex(int idx){
 			deleteDirectoryIndex(i);
 		}
 	}
-	int x;
 	for (x = 0;x<MAX_FILES;x++){
 		if (files[x*FILES_ENTRY_LENGTH] == idx){
 			deleteFileIndex(x);
@@ -815,4 +827,61 @@ void deleteDirectoryIndex(int idx){
 	}
 	writeSector(dirs,DIRS_SECTOR);
 	writeSector(files,FILES_SECTOR);
+}
+
+
+void putArgs (char curdir, char argc, char **argv) {
+	char args[SECTOR_SIZE];
+	int i, j, p;
+	clear(args, SECTOR_SIZE);
+	args[0] = curdir;
+	args[1] = argc;
+	i = 0;
+	j = 0;
+	for (p = 1; p < ARGS_SECTOR && i < argc; ++p) {
+		args[p] = argv[i][j];
+		if (argv[i][j] == '\0') {
+			++i;
+			j = 0;
+		}
+		else {
+			++j;
+		}
+	}
+	writeSector(args, ARGS_SECTOR);
+}
+
+
+void getCurdir (char *curdir) {
+	char args[SECTOR_SIZE];
+	readSector(args, ARGS_SECTOR);
+	*curdir = args[0];
+}
+
+void getArgc (char *argc) {
+	char args[SECTOR_SIZE];
+	readSector(args, ARGS_SECTOR);
+	*argc = args[1];
+}
+
+void getArgv (char index, char *argv) {
+	char args[SECTOR_SIZE];
+	int i, j, p;
+	readSector(args, ARGS_SECTOR);
+	i = 0;
+	j = 0;
+	for (p = 1; p < ARGS_SECTOR; ++p) {
+		if (i == index) {
+			argv[j] = args[p];
+			++j;
+		}
+		if (args[p] == '\0') {
+			if (i == index) {
+				break;
+			}
+			else {
+				++i;
+			}
+		}
+	}
 }

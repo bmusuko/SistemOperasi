@@ -22,7 +22,7 @@
 #define EMPTY 0x00
 #define USED 0xFF
 
-#include "kernel.c"
+//#include "kernel.c"
 
 
 int stringCmp(char *a, char *b, int len) {
@@ -38,15 +38,23 @@ int stringCmp(char *a, char *b, int len) {
 	return 1;
 }
 
-void main() {
-	char currentDir;
+main() {
+	int i;
+    char curdir;
+    char argc;
+    char argv[4][16];
+    char currentDir;
 	char pathDir;
 	char input[1000];
 	char dirs[SECTOR_SIZE];
 	int complete;
 	int idx;
 	int temp[4];
-	
+	interrupt(0x21, 0x21, &curdir, 0, 0);
+    interrupt(0x21, 0x22, &argc, 0, 0);
+    for (i = 0; i < argc; ++i) {
+        interrupt(0x21, 0x23, i, argv[i], 0);
+    }
     while(1) {
 
         interrupt(0x21, 0x21, &currentDir, 0, 0);
@@ -123,12 +131,58 @@ void main() {
                 namaDir[i-6] = input[i];
                 i++;
             }
+
             makeDirectory(namaDir,&result,currentDir);
             if(result == INSUFFICIENT_ENTRIES){
                 printString("Memory Tidak Cukup");
             }else if(result == ALREADY_EXISTS){
                 printString("Directory Sudah Ada");
             }
+        } else if (stringCmp(input, "cat", 3)) {
+            char currentDir;
+            char argc;
+            char argv[20];
+            char temp[SECTOR_SIZE * MAP_SECTOR];
+            char inputIsi[128];
+            int  result;
+            char type = 0;
+            int length = SECTOR_SIZE * MAP_SECTOR;
+
+            //get currentDir
+            interrupt(0x21, 0x21, &currentDir, 0, 0);
+            //get argc
+            interrupt(0x21, 0x22, &argc, 0, 0);
+            //get args
+            for (int i = 0; i < argc; i++) {
+                interrupt(0x21, 0x23, i, argv[i], 0);
+            }
+
+            if (argc > 0) {
+                if (argc > 1) {
+                    if (stringCmp("-w", argv[1], 2)) {
+                        type = 1;
+                    }
+                }
+
+                if (type == 1) {
+                    interrupt(0x21, 0x00, "Masukan isi file: \r\n", 0, 0);
+                    interrupt(0x21, 0x01, inputIsi, 0, 0);
+                    interrupt(0x21, (currentDir << 8) | 0x05, inputIsi, argv[0], &result);
+                    if (result == 0) {
+                        interrupt(0x21, 0x00, "File sudah ditulis\r\n", 0, 0);
+                    }
+                } else if (type == 0) {
+                    interrupt(0x21, (currentDir << 8) | 0x04, inputIsi, argv[0], &result);
+                    if (result == 0) {
+                        interrupt(0x21, 0x00, inputIsi, 0, 0);
+                        interrupt(0x21, 0x00, "\n", 0, 0);
+                    } else {
+                        interrupt(0x21, 0x00, "File tidak ditemuka", 0, 0);
+                    }
+                }
+            }
+            interrupt(0x21, (0XFF << 8) | 0x06, "shell", 0x2000, result);
         }
 	}
+    return 0;
 }
