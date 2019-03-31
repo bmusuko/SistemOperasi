@@ -22,8 +22,12 @@
 #define EMPTY 0x00
 #define USED 0xFF
 
-//#include "kernel.c"
-
+void init(char *s,int size){
+	int i;
+	for(i = 0;i<size;i++){
+		s[i] = '\0';
+	}
+}
 
 int stringCmp(char *a, char *b, int len) {
 	int i = 0;
@@ -88,12 +92,12 @@ main() {
 		}else if(stringCmp(input, "ls",2)){
             char dirs[SECTOR_SIZE];
             char files[SECTOR_SIZE];
-            char nama[18];
-            char namaFile[15];
+            char nama[19];
+            char namaFile[16];
             int i,j;
 
-            readSector(dirs,DIRS_SECTOR);
-            readSector(files,FILES_SECTOR);
+            interrupt(0x13, 0x201, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
+            interrupt(0x13, 0x201, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
 
             init(nama,18);
             init(namaFile,15);
@@ -104,8 +108,9 @@ main() {
                         nama[15] = 'd';
                         nama[16] = 'i';
                         nama[17] = 'r';
+                        nama[18] = '\r\n';
                     }
-                    printString(nama);
+                    interrupt(0x21, 0x00, nama, 0, 0);
                 }
             }
             for (i = 0;i<MAX_DIRS;i++){
@@ -113,9 +118,12 @@ main() {
                     for (j = 1;j<MAX_DIRS;j++){
                         namaFile[j-1] = files[(i*SECTORS_ENTRY_LENGTH)+j];
                     }
-                    printString(namaFile);
+                    namaFile[15] = '\r\n';
+                    interrupt(0x21, 0x00, namaFile, 0, 0);
                 }
             }
+            interrupt(0x13, 0x301, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
+            interrupt(0x13, 0x301, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
         }else if(stringCmp(input,"mkdir",5)){
             char namaDir[100];
             char dirs[SECTOR_SIZE];
@@ -124,20 +132,25 @@ main() {
             char namaFile[15];
             int i,j,result;
 
-            readSector(dirs,DIRS_SECTOR);
-            readSector(files,FILES_SECTOR);
+            interrupt(0x13, 0x201, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
+            interrupt(0x13, 0x201, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
+
             i = 6;
             while(input[i]!='\0'){
                 namaDir[i-6] = input[i];
                 i++;
             }
-
-            makeDirectory(namaDir,&result,currentDir);
+            interrupt(0x21,0x08,namaDir,&result,0);
+            // makeDirectory(namaDir,&result,currentDir);
             if(result == INSUFFICIENT_ENTRIES){
-                printString("Memory Tidak Cukup");
+                // printString("Memory Tidak Cukup");
+                interrupt(0x21, 0x00, "Memory Tidak Cukup", 0, 0);
             }else if(result == ALREADY_EXISTS){
-                printString("Directory Sudah Ada");
+                interrupt(0x21, 0x00, "Directory Sudah Ada", 0, 0);
+                // printString("Directory Sudah Ada");
             }
+            interrupt(0x13, 0x301, dirs, div(DIRS_SECTOR, 36) * 0x100 + mod(DIRS_SECTOR, 18) + 1, mod(div(DIRS_SECTOR, 18), 2) * 0x100);
+            interrupt(0x13, 0x301, files, div(FILES_SECTOR, 36) * 0x100 + mod(FILES_SECTOR, 18) + 1, mod(div(FILES_SECTOR, 18), 2) * 0x100);
         } else if (stringCmp(input, "cat", 3)) {
             char currentDir;
             char argc;
