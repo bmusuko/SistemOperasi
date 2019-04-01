@@ -4,7 +4,7 @@
 #define MAX_FILES 32
 #define MAX_FILENAME 16
 #define MAX_DIRS 32
-#define MAX_SECTORS 20
+#define MAX_SECTORS 32
 #define DIRS_ENTRY_LENGTH 16
 #define FILES_ENTRY_LENGTH 16
 #define SECTORS_ENTRY_LENGTH 16
@@ -51,13 +51,19 @@ void deleteDirectory(char *path, int *success, char parentIndex);
 int main() {
 //     char xxx[1000];
 	int success;
+	    char curdir = 0xFF; // root
+    char argc = 0;
+    char *argv[2];
 	makeInterrupt21();
-	handleInterrupt21(0x00,"kernel.c",0,0);
+	// interrupt(0x21,0x00,"kernel.c",0,0);
+	//printString("ete");
+	interrupt(0x21, (0xFF << 8) | 0x00, "Memasuki kernel", 0, 0);
 //     //handleInterrupt21(0x6,"keyproc",0x2000,s);
 //     handleInterrupt21(0x4,xxx,"key.txt",s);
 //     handleInterrupt21(0x0,xxx,0,0);
 //     //Kode akses : CY7aJVLa
-//     while (1);
+// //     while (1);
+	interrupt(0x21, 0x20, curdir, argc, argv);
 	interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
 	while(1);
 }
@@ -201,20 +207,19 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 	int i,j,k,l,found;
 	int pointerNamaFile = 0;
 	int pointerSector=0; 
-	char directory[15];
+	char directory[16];
 	char dirs[SECTOR_SIZE];
 	char files[SECTOR_SIZE];
 	char sectors[SECTORS_SECTOR];
 	char parent = parentIndex;
 	readSector(dirs,DIRS_SECTOR);
-
 	while(!isFile(path,pointerPath)){
-		init(directory,15);
+		init(directory,16);
 		i = 0;
 		while(path[pointerPath] != '/'){
 			directory[i] = path[pointerPath]; // directory nama dir paling kiri
 			i++; 
-			pointerDirs++;
+			pointerPath++;
 		}
 		found = FALSE;
 		pointerDirs = 0;
@@ -254,7 +259,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 	found = FALSE;
 	j = 0;
 
-	while(!found && pointerNamaFile<MAX_FILES){
+	while(!found && pointerNamaFile<MAX_FILENAME){
 		if(files[pointerNamaFile*FILES_ENTRY_LENGTH] == parent){
 			k = 0;
 			l = pointerPath;
@@ -286,11 +291,12 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		return;
 	}
 	readSector(sectors,SECTORS_SECTOR);
+	pointerSector = 0;
 	while(pointerSector < SECTORS_ENTRY_LENGTH && sectors[pointerNamaFile * SECTORS_ENTRY_LENGTH + pointerSector] != '\0') {
-		readSector(buffer + pointerSector * SECTOR_SIZE, sectors[pointerNamaFile * SECTORS_ENTRY_LENGTH + pointerSector]);
+		readSector(buffer + (pointerSector * SECTOR_SIZE), sectors[(pointerNamaFile * SECTORS_ENTRY_LENGTH) + pointerSector]);
 		pointerSector++;
 	} 
-	*result = pointerNamaFile;
+	*result = SUCCESS;
 
 }
 
@@ -553,12 +559,16 @@ void executeProgram(char *path, int segment, int *result, char parentIndex){
 	char buffer[MAX_SECTORS * SECTOR_SIZE];
 	int i;
 	readFile(buffer, path,result,parentIndex);
-	if (*result == TRUE){
+	if (*result == SUCCESS){
+		printString("\n\r");
+		printString("Berhasil membaca");
+		printString("\n\r");
 		for (i = 0; i<MAX_SECTORS * SECTOR_SIZE ; i++){
 			putInMemory(segment, i, buffer[i]);
 		}
 		launchProgram(segment);
-	}
+
+	} 
 }
 
 void terminateProgram (int *result) {
@@ -839,7 +849,7 @@ void putArgs (char curdir, char argc, char **argv) {
 	args[1] = argc;
 	i = 0;
 	j = 0;
-	for (p = 1; p < ARGS_SECTOR && i < argc; ++p) {
+	for (p = 2; p < ARGS_SECTOR && i < argc; ++p) {
 		args[p] = argv[i][j];
 		if (argv[i][j] == '\0') {
 			++i;
@@ -871,7 +881,7 @@ void getArgv (char index, char *argv) {
 	readSector(args, ARGS_SECTOR);
 	i = 0;
 	j = 0;
-	for (p = 1; p < ARGS_SECTOR; ++p) {
+	for (p = 2; p < ARGS_SECTOR; ++p) {
 		if (i == index) {
 			argv[j] = args[p];
 			++j;
