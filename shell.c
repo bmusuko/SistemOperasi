@@ -32,7 +32,7 @@ void main() {
             offset = 2;
             newIdx = offset;
             interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
-            while (input[newIdx] == ' ') { //untuk melewati space antara command cd dan argumen selanjutnya
+            while (input[newIdx] == ' ' && input[newIdx] != '\0') { //untuk melewati space antara command cd dan argumen selanjutnya
                 newIdx++;
             }
             if (input[newIdx] == 0) {
@@ -54,7 +54,9 @@ void main() {
                         }
                     }
                     if(found){
-                        interrupt(0x21,0x20,dirs[i*DIRS_ENTRY_LENGTH],0,0);
+                        currentDir = dirs[i*DIRS_ENTRY_LENGTH];
+                        interrupt(0x21,0x20,currentDir,0,0);
+                        interrupt(0x21,0x00,"berhasil cd\r\n",0,0);
                         break;
                     } else{
                         i++;
