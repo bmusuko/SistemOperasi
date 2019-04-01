@@ -23,8 +23,6 @@ void main() {
                 interrupt(0x21, 0x00, "Directory Tidak Ditemukan\r\n", 0, 0); 
             } else if (success == INSUFFICIENT_ENTRIES){
                 interrupt(0x21, 0x00, "Memory Tidak Cukup\r\n", 0, 0);
-            }else if (success == -987){
-                interrupt(0x21, 0x00, "DEBUG LETSGO\r\n", 0, 0);
             }else{
                 interrupt(0x21, 0x00, "Direktori berhasil dibuat\r\n", 0, 0);
             }
