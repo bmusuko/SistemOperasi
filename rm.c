@@ -19,4 +19,5 @@ int main(){
     		}
     	}
     }
+    interrupt(0x21, (0x00 << 8) | 0x07, &result, 0, 0);
 }
