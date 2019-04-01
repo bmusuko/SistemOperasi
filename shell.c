@@ -38,7 +38,7 @@ void main() {
             }
             if(input[offset] != '\0'){
                 while(1){
-                    if(input[offset] =='\0' || input[i] == ' '){
+                    if(input[offset] =='\0' || input[offset] == ' '){
                         if(j != 0){
                             string[argc][j] = '\0';
                             argv[argc] = string[argc];
@@ -70,8 +70,6 @@ void main() {
         interrupt(0x21,0x07,&i,0,0);
 
     }
-
-
 int strcmp(char *a, char *b, int len) {
     int i = 0;
     while (i < len) {
