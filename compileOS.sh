@@ -18,4 +18,8 @@ bcc -ansi -c -o shell.o shell.c
 ld86 -o shell -d shell.o lib_asm.o
 ./loadFile shell
 
+bcc -ansi -c -o echo.o echo.c
+ld86 -o echo -d echo.o lib_asm.o
+./loadFile echo
+
 ./loadFile keyproc2
