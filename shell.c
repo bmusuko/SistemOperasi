@@ -2,7 +2,7 @@
 #define SECTOR_SIZE 512
 #define NOT_FOUND -1
 #define DIRS_SECTOR 0x101
-int stringCmp(char *a, char *b, int len);
+int strcmp(char *a, char *b, int len);
 
 
 void main() {
