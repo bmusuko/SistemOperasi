@@ -10,7 +10,7 @@ int main(){
             interrupt(0x21, 0x00, argv, 0, 0);
             interrupt(0x21, 0x00, " ",0,0);
             i++;
-	    }
+	    } 
     }
 	else{
         interrupt(0x21,0x23,0,argv,0);
