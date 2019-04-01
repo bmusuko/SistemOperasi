@@ -29,5 +29,5 @@ void main() {
             j++;
         }
     }
-    interrupt(0x21, (0x00 << 8) | 0x07, &success, 0, 0);
+    interrupt(0x21, (0xFF << 8) | 0x07, &success, 0, 0);
 }
