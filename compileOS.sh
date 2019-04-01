@@ -28,4 +28,8 @@ bcc -ansi -c -o ls.o ls.c
 ld86 -o ls -d ls.o lib_asm.o
 ./loadFile ls
 
+bcc -ansi -c -o mkdir.o mkdir.c
+ld86 -o mkdir -d mkdir.o lib_asm.o
+./loadFile mkdir
+
 ./loadFile keyproc2

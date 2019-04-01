@@ -49,7 +49,6 @@ void makeDirectory(char *path, int *result, char parentIndex);
 void deleteDirectory(char *path, int *success, char parentIndex);
 
 int main() {
-//     char xxx[1000];
 	int success;
 	    char curdir = 0xFF; // root
     char argc = 0;
@@ -450,6 +449,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 	writeSector(sectors,SECTORS_SECTOR);
 }
 
+
 void deleteFile(char *path, int *result, char parentIndex){
 	int pointerDirs;
 	int pointerPath = 0;
@@ -567,8 +567,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex){
 			putInMemory(segment, i, buffer[i]);
 		}
 		launchProgram(segment);
-
-	} 
+	}
 }
 
 void terminateProgram (int *result) {
@@ -599,6 +598,7 @@ void makeDirectory(char *path, int *result, char parentIndex){
 	
 
 	readSector(dirs,DIRS_SECTOR);
+	
 	freee = FALSE;
 	while (pointerDirs<MAX_DIRS && !freee){
 		if (dirs[(pointerDirs*DIRS_ENTRY_LENGTH)+1]=='\0'){
@@ -644,6 +644,7 @@ void makeDirectory(char *path, int *result, char parentIndex){
 				return;
 			}
 		}
+		
 		readSector(files,FILES_SECTOR);
 		found = FALSE;
 		pointerFiles = 0;
@@ -654,6 +655,7 @@ void makeDirectory(char *path, int *result, char parentIndex){
 			pointerPath++;
 			pointerDirectory++;
 		}
+		
 		while(pointerFiles<MAX_FILES && !found){
 			if (files[pointerFiles*FILES_ENTRY_LENGTH] == parent){
 				pointerDirectory = 0;
@@ -670,9 +672,10 @@ void makeDirectory(char *path, int *result, char parentIndex){
 					*result = ALREADY_EXISTS;
 					return;
 				}
-				pointerFiles++;
 			}
+			pointerFiles++;
 		}
+		
 		dirs[freeDirSection*DIRS_ENTRY_LENGTH] = parent;
 		i = 1;
 		while (i<16){
@@ -692,6 +695,7 @@ void makeDirectory(char *path, int *result, char parentIndex){
 		return;
 	}
 }
+
 void deleteFileIndex(int idx){
 	char files[SECTOR_SIZE];
 	char map[SECTOR_SIZE];
