@@ -63,7 +63,9 @@ int main() {
 	    char curdir = 0xFF; // root
     char argc = 0;
     char *argv[2];
+    initializeProcStructures();
 	makeInterrupt21();
+	makeTimerInterrupt();
 	// interrupt(0x21,0x00,"kernel.c",0,0);
 	//printString("ete");
 	interrupt(0x21, (0xFF << 8) | 0x00, "Memasuki kernel", 0, 0);
