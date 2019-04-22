@@ -44,12 +44,19 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void deleteFileIndex(int idx);
 void deleteDirectoryIndex(int idx);
 void deleteFile(char *path, int *result, char parentIndex);
-void executeProgram(char *path, int segment, int *result, char parentIndex);
+void executeProgram (char *path, int *result, char parentIndex);
 void terminateProgram (int *result);
 void makeDirectory(char *path, int *result, char parentIndex);
 void deleteDirectory(char *path, int *success, char parentIndex);
 char cmpArray(char * arr1, char * arr2, int length);
 void findFile(char * parent, char * current, char * filename, int * idx, int * result);
+void yieldControl();
+void sleep();
+void pauseProcess (int segment, int *result);
+void resumeProcess (int segment, int *result);
+void killProcess (int segment, int *result);
+
+
 
 int main() {
 	int success;
@@ -572,31 +579,58 @@ void deleteFile(char *path, int *result, char parentIndex){
 
 }
 
-void executeProgram(char *path, int segment, int *result, char parentIndex){
-	char buffer[MAX_SECTORS * SECTOR_SIZE];
-	int i;
-	readFile(buffer, path,result,parentIndex);
-	if (*result == SUCCESS){
-		printString("\n\r");
-		printString("Berhasil membaca");
-		printString("\n\r");
-		for (i = 0; i<MAX_SECTORS * SECTOR_SIZE ; i++){
-			putInMemory(segment, i, buffer[i]);
-		}
-		launchProgram(segment);
-	}
+void executeProgram (char *path, int *result, char parentIndex) {
+  struct PCB* pcb;
+  int segment;
+  int i, fileIndex;
+  char buffer[MAX_SECTORS * SECTOR_SIZE];
+  readFile(buffer, path, result, parentIndex);
+
+  if (*result != NOT_FOUND) {
+    setKernelDataSegment();
+    segment = getFreeMemorySegment();
+    restoreDataSegment();
+
+    fileIndex = *result;
+    if (segment != NO_FREE_SEGMENTS) {
+      setKernelDataSegment();
+
+      pcb = getFreePCB();
+      pcb->index = fileIndex;
+      pcb->state = STARTING;
+      pcb->segment = segment;
+      pcb->stackPointer = 0xFF00;
+      pcb->parentSegment = running->segment;
+      addToReady(pcb);
+
+      restoreDataSegment();
+      for (i = 0; i < SECTOR_SIZE * MAX_SECTORS; i++) {
+        putInMemory(segment, i, buffer[i]);
+      }
+      initializeProgram(segment);
+      sleep();
+    } else {
+      *result = INSUFFICIENT_SEGMENTS;
+    }
+  }
 }
 
+
 void terminateProgram (int *result) {
-	char shell[6];
-	shell[0] = 's';
-	shell[1] = 'h';
-	shell[2] = 'e';
-	shell[3] = 'l';
-	shell[4] = 'l';
-	shell[5] = '\0';
-	executeProgram(shell, 0x2000, result, 0xFF);
-}
+  int parentSegment;
+  setKernelDataSegment();
+
+  parentSegment = running->parentSegment;
+  releaseMemorySegment(running->segment);
+  releasePCB(running);
+
+  restoreDataSegment();
+  if (parentSegment != NO_PARENT) {
+    resumeProcess(parentSegment, result);
+  }
+  yieldControl();
+} 
+
 
 // void makeDirectory(char *path, int *result, char parentIndex) {
 //     char parent = parentIndex;
@@ -1093,3 +1127,73 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     }
 
 }
+
+void yieldControl () {
+	interrupt(0x08, 0, 0, 0, 0);
+}
+
+void sleep () {
+	setKernelDataSegment();
+	running->state = PAUSED;
+	restoreDataSegment();
+	yieldControl();
+} 
+
+void pauseProcess (int segment, int *result) {
+  struct PCB *pcb;
+  int res;
+
+  setKernelDataSegment();
+
+  pcb = getPCBOfSegment(segment);
+  if (pcb != NULL && pcb->state != PAUSED) {
+    pcb->state = PAUSED; res = SUCCESS;
+  } else {
+    res = NOT_FOUND;
+  }
+
+  restoreDataSegment();
+  *result = res;
+} 
+
+void resumeProcess (int segment, int *result) {
+  struct PCB *pcb;
+  int res;
+  setKernelDataSegment();
+
+  pcb = getPCBOfSegment(segment);
+  if (pcb != NULL && pcb->state == PAUSED) {
+    pcb->state = READY;
+    addToReady(pcb);
+    res = SUCCESS;
+  } else {
+    res = NOT_FOUND;
+  }
+
+  restoreDataSegment();
+  *result = res;
+}
+
+void killProcess (int segment, int *result) {
+  struct PCB *pcb;
+  int res;
+  setKernelDataSegment();
+
+  pcb = getPCBOfSegment(segment);
+  if (pcb != NULL) {
+    releaseMemorySegment(pcb->segment);
+    releasePCB(pcb);
+    res = SUCCESS;
+  } else {
+    res = NOT_FOUND;
+  }
+
+  restoreDataSegment();
+  *result = res;
+} 
+
+
+
+
+
+
