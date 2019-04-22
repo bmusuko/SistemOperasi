@@ -22,7 +22,8 @@
 #define INSUFFICIENT_DIR_ENTRIES -1
 #define EMPTY 0x00
 #define USED 0xFF
-
+#define MAIN
+#include "proc.h"
 
 
 

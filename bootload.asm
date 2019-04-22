@@ -3,7 +3,7 @@
 ;
 ;This is a simple bootloader that loads and executes a kernel at sector 1
 
-	bits 16
+	bits 20
 KSEG	equ	0x1000		;kernel goes into memory at 0x10000
 KSIZE	equ	16		;kernel is at most 16 sectors (and probably less)
 KSTART	equ	1		;kernel lives at sector 1 (makes room for map & dir)
