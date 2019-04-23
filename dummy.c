@@ -28,19 +28,20 @@ int main() {
         runBackground  = 0;
         result = 0;
         argc = 0;
+        i = 0;
 
         interrupt(0x21, 0x00, "$ ", 0, 0);
         interrupt(0x21, 0x01, input, 0, 0);
         interrupt(0x21, 0x00, "\r\n", 0, 0);
 
 
-        // while (input[i] != '\0') {
-        //     if (input[i] == 0x20) { // 0x20 == space
-        //         argv[argc++] = input + i + 1;
-        //         input[i] = '\0';
-        //     }
-        //     ++i;
-        // }
+        while (input[i] != '\0') {
+            if (input[i] == 0x20) { // 0x20 == space
+                argv[argc++] = input + i + 1;
+                input[i] = '\0';
+            }
+            ++i;
+        }
 
 
         // jika ingin run program di background
@@ -51,13 +52,13 @@ int main() {
 
         // execute program
         if (strcmp(input, "cd", 2)) {
-            offset = 2;
-            newIdx = offset;
-            interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
-            while (input[newIdx] == ' ' && input[newIdx] != '\0') { //untuk melewati space antara command cd dan argumen selanjutnya
-                newIdx++;
-            }
-            if (input[newIdx] == 0) {
+            // offset = 2;
+            // newIdx = offset;
+            // interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
+            // while (input[newIdx] == ' ' && input[newIdx] != '\0') { //untuk melewati space antara command cd dan argumen selanjutnya
+            //     newIdx++;
+            // }
+            if (argc == 0) {
                 interrupt(0x21, 0x20, 0xFF, 0, 0); // jika hanya argumen cd, akan kembali ke root directory
                 interrupt(0x21,0x00,"BACK TO ROOT\r\n",0,0);
             } else {
