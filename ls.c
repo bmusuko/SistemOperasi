@@ -13,6 +13,7 @@ void main(){
     char currentDir;
     int i,j;
 
+    enableInterrupts();
     interrupt(0x21, 0x21, &currentDir, 0, 0);
     interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
     interrupt(0x21, 0x02, files, FILES_SECTOR, 0);

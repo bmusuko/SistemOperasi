@@ -28,19 +28,20 @@ int main() {
         runBackground  = 0;
         result = 0;
         argc = 0;
+        i = 0;
 
         interrupt(0x21, 0x00, "$ ", 0, 0);
         interrupt(0x21, 0x01, input, 0, 0);
         interrupt(0x21, 0x00, "\r\n", 0, 0);
 
 
-        // while (input[i] != '\0') {
-        //     if (input[i] == 0x20) { // 0x20 == space
-        //         argv[argc++] = input + i + 1;
-        //         input[i] = '\0';
-        //     }
-        //     ++i;
-        // }
+        while (input[i] != '\0') {
+            if (input[i] == 0x20) { // 0x20 == space
+                argv[argc++] = input + i + 1;
+                input[i] = '\0';
+            }
+            ++i;
+        }
 
 
         // jika ingin run program di background

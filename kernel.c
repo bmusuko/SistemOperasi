@@ -62,7 +62,7 @@ void killProcess (int segment, int *result);
 
 int main() {
 	int success;
-	    char curdir = 0xFF; // root
+	char curdir = 0xFF; // root
     char argc = 0;
     char *argv[2];
     initializeProcStructures();
@@ -332,7 +332,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		readSector(buffer + (pointerSector * SECTOR_SIZE), sectors[(pointerNamaFile * SECTORS_ENTRY_LENGTH) + pointerSector]);
 		pointerSector++;
 	} 
-	*result = SUCCESS;
+	*result = pointerNamaFile;
 }
 
 

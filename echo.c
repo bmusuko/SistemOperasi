@@ -1,8 +1,10 @@
 int main(){
-	int result;
+	
+    int result;
 	char argc,i;
 	char *argv[10];
     i = 0;
+    enableInterrupts();
     interrupt(0x21, 0x22, &argc, 0, 0);
     if (argc>1){
             while(i < argc){
