@@ -29,7 +29,7 @@
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
-void readString(char *string);
+void readString(char *string, int disableProcessControls);
 int mod(int a, int b);
 int div(int a, int b);
 void readSector(char *buffer, int sector);
@@ -88,7 +88,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       printString(BX);
       break;
     case 0x01:
-      readString(BX);
+      readString(BX,CX);
       break;
     case 0x02:
       readSector(BX, CX);
@@ -103,7 +103,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       writeFile(BX, CX, DX, AH);
       break;
     case 0x06:
-      executeProgram(BX, CX, DX, AH);
+      executeProgram(CX, DX, AH);
       break;
     case 0x07:
       terminateProgram(BX);
@@ -145,21 +145,35 @@ void printString(char *string) {
     }
 }
 
-void readString(char *string){
+void readString(char *string, int disableProcessControls){
     int i = 0;
     char c = interrupt(0x16, 0, 0, 0, 0);
+    int result;
     string[i] = c;
     while (c!='\r'){
-        if ((c=='\b')&&(i!=0)){
+        if ((c=='\b')&&(i!=0)){ // bisa spasi
             interrupt(0x10, 0xE00 + '\b', 0, 0, 0);
             interrupt(0x10, 0xE00 + '\0', 0, 0, 0);
             interrupt(0x10, 0xE00 + '\b', 0, 0, 0); 
             string[i]='\0'; 
             i--;
-            string[i]='\0';     
-            i--;      
-        }else{
+            string[i]='\0';
+            i--;         
+        } else if(c!='\b'){ // char biasa 
             interrupt(0x10, 0xE00 + c, 0, 0, 0);
+        }  else if(c == 0x3 && !disableProcessControls){ // ctrl + c
+        	​printstring("process berhasil dikill\r\n")
+        	setKernelDataSegment(); 
+			restoreDataSegment();
+			terminateProgram(&result);
+        } else if(c == 0x1A && !disableProcessControls){
+			setKernelDataSegment();		
+			printString("process berhasil disuspend\r\n");		
+			restoreDataSegment();				
+			sleep();
+			resumeProcess(0x2000, result);// memanggil shell kembali	
+        } else{ // spasi pada awal
+        	i--;
         }
         c = interrupt(0x16, 0, 0, 0, 0);
         i++;
@@ -306,7 +320,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 		readSector(buffer + (pointerSector * SECTOR_SIZE), sectors[(pointerNamaFile * SECTORS_ENTRY_LENGTH) + pointerSector]);
 		pointerSector++;
 	} 
-	*result = SUCCESS;
+	*result = pointerNamaFile;
 
 }
 
