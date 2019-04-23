@@ -59,6 +59,8 @@ void sleep ();
 void pauseProcess (int segment, int *result);
 void resumeProcess (int segment, int *result);
 void killProcess (int segment, int *result);
+void printInt(int i);
+void show();
 
 int main() {
 	int success;
@@ -140,6 +142,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0x34:
       killProcess (BX,CX);
       break;
+		case 0x35:
+			show();
+			break;
     default:
       printString("Invalid interrupt");
   }
@@ -1054,4 +1059,44 @@ void executeProgram (char *path,int asBackground, int *result, char parentIndex)
 			*result = INSUFFICIENT_SEGMENTS;
 		}
 	}
+}
+
+void printInt(int i){
+    char ir = '0' + (char) div(i, 100);
+	char ip = '0' + (char) div(mod(i, 100), 10);
+	char is = '0' + (char) mod(i, 10);
+	interrupt(0x10, 0xE00 + ir, 0, 0, 0);
+	interrupt(0x10, 0xE00 + ip, 0, 0, 0);
+	interrupt(0x10, 0xE00 + is, 0, 0, 0);
+}
+
+void show() {
+	int i;
+    char file[SECTOR_SIZE];
+	char dummy1;
+	char* dummy3;
+	unsigned int dummy2;
+	readSector(file, FILES_SECTOR);
+	setKernelDataSegment();
+	for(i = 0; i < MAX_SEGMENTS; ++i) {
+		if (memoryMap[i] == SEGMENT_USED) {
+			dummy1 = pcbPool[i].index;
+			dummy3 = "  |  ";
+			restoreDataSegment();
+			setKernelDataSegment();
+			dummy2 = (pcbPool[i].segment >> 12) - 2;
+			printInt(dummy2);
+			restoreDataSegment();
+			setKernelDataSegment();
+			printString(dummy3);
+			restoreDataSegment();
+			readSector(file, FILES_SECTOR);
+			printString(file + dummy1 * FILES_ENTRY_LENGTH + 1);
+			setKernelDataSegment();
+			printString("\r\n");
+			restoreDataSegment();
+			setKernelDataSegment();
+		}
+    }
+    restoreDataSegment();
 }
