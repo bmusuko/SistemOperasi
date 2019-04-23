@@ -54,9 +54,9 @@ int main() {
 
         // execute program
         if (strcmp(input, "cd", 2)) {
-            useDir = curDir;
-            offset = 2;
-            newIdx = offset;
+            // useDir = curDir;
+            // offset = 2;
+            // newIdx = offset;
             // interrupt(0x21, 0x02, dirs, DIRS_SECTOR, 0);
             // while (input[newIdx] == ' ' && input[newIdx] != '\0') { //untuk melewati space antara command cd dan argumen selanjutnya
             //     newIdx++;
