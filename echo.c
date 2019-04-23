@@ -2,7 +2,7 @@ int main(){
 	
     int result;
 	char argc,i;
-	char *argv[10];
+	char argv[4][32];
     i = 0;
     enableInterrupts();
     interrupt(0x21, 0x22, &argc, 0, 0);

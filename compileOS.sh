@@ -38,3 +38,10 @@ ld86 -o rm -d rm.o lib_asm.o
 bcc -ansi -c -o cat.o cat.c
 ld86 -o cat -d cat.o lib_asm.o
 ./loadFile cat
+
+# bcc -ansi -c -o ps.o ps.c
+# ld86 -o ps -d ps.o lib_asm.o
+# ./loadFile ps
+
+./loadFile keyproc3a
+./loadFile keyproc3b

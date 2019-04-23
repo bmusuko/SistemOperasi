@@ -7,6 +7,7 @@
 #define DIRS_SECTOR 0x101
 #define TRUE 1
 #define FALSE 0
+#define INSUFFICINET_MEMORY -3
 int strcmp(char *a, char *b, int len);
 
 
@@ -42,8 +43,6 @@ int main() {
             }
             ++i;
         }
-
-
         // jika ingin run program di background
         if (strcmp(argv[argc - 1], "&", 1)){
             argc--;
@@ -135,55 +134,9 @@ int main() {
             interrupt(0x21, 0x20, curDir, argc, argv);                // taruh argumen
             interrupt(0x21, (curDir << 8) | 0x06, input, runBackground, &result);     // executeProgram
             if (result == NOT_FOUND) interrupt(0x21, 0x00, "No such program\r\n", 0, 0);
-            else interrupt(0x21, 0x00, "Insufficient memory\r\n", 0, 0);
-            //if (result == -3) interrupt(0x21, 0x00, "Insufficient memory\r\n", 0, 0);
+            else if (result == INSUFFICINET_MEMORY)interrupt(0x21, 0x00, "Insufficient memory\r\n", 0, 0);
+            
         }
-        // else if(input[0]!=0){
-        //     // Prepare the argument
-        //     useDir = 0xFF;
-        //     offset = 0;
-        //     argc = 0;
-        //     j = 0;
-        //     temp = 0;
-        //     if(strcmp(input, "./", 2)){
-        //         useDir = curDir;
-        //         offset = 2;
-        //         temp = offset;
-        //     }
-        //     while(input[offset] != '\0' && input[offset] != ' '){ // mencari ending kalimat
-        //         offset++;
-        //     }
-        //     if(input[offset] != '\0'){
-        //         while(1){
-        //             if(input[offset] =='\0' || input[offset] == ' '){
-        //                 if(j != 0){
-        //                     string[argc][j] = '\0';
-        //                     argv[argc] = string[argc];
-        //                     argc++;
-        //                     j = 0;
-        //                     if(input[offset]=='\0'){
-        //                         break;
-        //                     }
-        //                 }
-        //             } else{
-        //                 string[argc][j] = input[offset];
-        //                 j++;
-        //             }
-        //             offset++;
-        //         }
-        //     }
-        //     interrupt(0x21,0x20,curDir,argc,argv);
-        //     offset = temp;
-        //     for(i=offset;input[i]!=' ' && input[i]!='\0';i++);
-        //     input[i] = '\0';
-        //     interrupt(0x21, 0xFF<<8|0x6, input, 0x2000, &success);
-        //     if(!success){
-        //         if(success == NOT_FOUND)
-        //             interrupt(0x21, 0x00, "Program Tidak ada\r\n", 0, 0);
-        //         else
-        //             interrupt(0x21, 0x00, "Program Error\r\n", 0, 0);
-        //     }
-        // }
 
     }
     return 0;

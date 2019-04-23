@@ -170,8 +170,6 @@ void readString(char *string, int disableProcessControls){
             i--;
             string[i]='\0';
             i--;         
-        } else if(c!='\b'){ // char biasa 
-            interrupt(0x10, 0xE00 + c, 0, 0, 0);
         }  else if(c == 0x3 && !disableProcessControls){ // ctrl + c
         	​printString("process berhasil dikill\r\n");
         	setKernelDataSegment(); 
@@ -183,6 +181,8 @@ void readString(char *string, int disableProcessControls){
 			restoreDataSegment();				
 			sleep();
 			resumeProcess(0x2000, result);// memanggil shell kembali	
+        } else if(c!='\b'){ // char biasa 
+            interrupt(0x10, 0xE00 + c, 0, 0, 0);
         } else{ // spasi pada awal
         	i--;
         }
@@ -628,14 +628,16 @@ void deleteFile(char *path, int *result, char parentIndex){
 // }
 
 void terminateProgram (int *result) {
-	char shell[6];
-	shell[0] = 's';
-	shell[1] = 'h';
-	shell[2] = 'e';
-	shell[3] = 'l';
-	shell[4] = 'l';
-	shell[5] = '\0';
-	executeProgram(shell, 0x2000, result, 0xFF);
+	int parentSegment;
+	setKernelDataSegment();
+	parentSegment = running->parentSegment;
+	releaseMemorySegment(running->segment);
+	releasePCB(running);
+	restoreDataSegment();
+	if (parentSegment != NO_PARENT) {
+		resumeProcess(parentSegment, result);
+	}
+	yieldControl();
 }
 
 //PUNYA KATING
