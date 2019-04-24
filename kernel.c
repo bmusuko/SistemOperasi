@@ -59,7 +59,7 @@ void sleep ();
 void pauseProcess (int segment, int *result);
 void resumeProcess (int segment, int *result);
 void killProcess (int segment, int *result);
-void printInt(int i);
+// void printInt(int i);
 void show();
 
 int main() {
@@ -176,8 +176,8 @@ void readString(char *string, int disableProcessControls){
             string[i]='\0';
             i--;         
         }  else if(c == 0x3 && !disableProcessControls){ // ctrl + c
-        	​printString("process berhasil dikill\r\n");
         	setKernelDataSegment(); 
+        	​printString("process berhasil dikill\r\n");
 			restoreDataSegment();
 			terminateProgram(&result);
         } else if(c == 0x1A && !disableProcessControls){
@@ -495,7 +495,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 	writeSector(sector,SECTORS_SECTOR);
 }
 
-//PUNYA KATING
 char cmpArray(char * arr1, char * arr2, int length) {
     int i = 0;
     char equal = TRUE;
@@ -617,21 +616,6 @@ void deleteFile(char *path, int *result, char parentIndex){
 
 }
 
-// void executeProgram(char *path, int segment, int *result, char parentIndex){
-// 	char buffer[MAX_SECTORS * SECTOR_SIZE];
-// 	int i;
-// 	readFile(buffer, path,result,parentIndex);
-// 	if (*result == SUCCESS){
-// 		printString("\n\r");
-// 		printString("Berhasil membaca");
-// 		printString("\n\r");
-// 		for (i = 0; i<MAX_SECTORS * SECTOR_SIZE ; i++){
-// 			putInMemory(segment, i, buffer[i]);
-// 		}
-// 		launchProgram(segment);
-// 	}
-// }
-
 void terminateProgram (int *result) {
 	int parentSegment;
 	setKernelDataSegment();
@@ -645,7 +629,6 @@ void terminateProgram (int *result) {
 	yieldControl();
 }
 
-//PUNYA KATING
 void findDir(char * parent, char * current, char * filename, int * idx, int * result) {
     // Read the segment of the name.
     char name[MAX_FILENAME + 1];
@@ -1061,14 +1044,6 @@ void executeProgram (char *path,int asBackground, int *result, char parentIndex)
 	}
 }
 
-void printInt(int i){
-    char ir = '0' + (char) div(i, 100);
-	char ip = '0' + (char) div(mod(i, 100), 10);
-	char is = '0' + (char) mod(i, 10);
-	interrupt(0x10, 0xE00 + ir, 0, 0, 0);
-	interrupt(0x10, 0xE00 + ip, 0, 0, 0);
-	interrupt(0x10, 0xE00 + is, 0, 0, 0);
-}
 
 void show() {
 	int i;
@@ -1085,7 +1060,7 @@ void show() {
 			restoreDataSegment();
 			setKernelDataSegment();
 			dummy2 = (pcbPool[i].segment >> 12) - 2;
-			printInt(dummy2);
+			interrupt(0x10, 0xE00 + '0' + (char) mod(dummy2, 10), 0, 0, 0); // print huruf ke layar
 			restoreDataSegment();
 			setKernelDataSegment();
 			printString(dummy3);
